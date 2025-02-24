@@ -1,5 +1,9 @@
 #include "Game.h"
+#include "Actor.h"
+#include "SpriteComponent.h"
 #include "SDL_image.h"
+
+#include <algorithm>
 
 Game::Game()
 	: mWindow(nullptr), 
@@ -10,7 +14,7 @@ Game::Game()
 
 bool Game::Initialize()
 {
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0)
+	if (SDL_Init(SDL_INIT_VIDEO) != 0)
 	{
 		SDL_Log("SDL library failed to initialize: %s", SDL_GetError());
 		return false;
@@ -67,31 +71,206 @@ void Game::ProcessInput()
 	{
 		switch (event.type)
 		{
-		case SDL_QUIT:
+		case SDL_QUIT: // End program at user-requested quit
 			mIsRunning = false;
 			break;
 		}
 	}
+
+	// Build input state
+	const Uint8* keyState = SDL_GetKeyboardState(NULL);
+	int mouseX, mouseY;
+	const Uint32 mouseState = SDL_GetMouseState(&mouseX, &mouseY);
+	InputState inputState{ keyState, mouseState, mouseX, mouseY };
+
+	// End game if ESC key or middle mouse button is pressed
+	if (keyState[SDL_SCANCODE_ESCAPE] || mouseState == SDL_BUTTON_MIDDLE)
+	{
+		mIsRunning = false;
+	}
+
+	// Pass the InputState to all actors
+	mUpdatingActors = true;
+	for (auto actor : mActors)
+	{
+		actor->ProcessInput(inputState);
+	}
+	mUpdatingActors = false;
 }
 
 void Game::Update()
 {
-	SDL_Log("%d", SDL_GetTicks());
+	// Limit frame rate to approx. 62.5 FPS (60 would require float type)
+	Uint32 capTicksCount = mTicksCount + 16;
+	if (SDL_GetTicks() < capTicksCount)
+	{
+		SDL_Delay(capTicksCount - SDL_GetTicks()); 
+	}
+	// In case FPS < 20, set deltaTime to 0.05 (~20FPS) to prevent large single update
+	float deltaTime = std::min(((SDL_GetTicks() - mTicksCount) / 1000.0f), 0.05f);
+	mTicksCount = SDL_GetTicks();
+
+	/*SDL_Log("Current FPS: %.0f", (1 / deltaTime));*/
+
+	// 1. Update all actors in mActors
+	mUpdatingActors = true;
+	for (auto actor : mActors)
+	{
+		actor->Update(deltaTime);
+	}
+	mUpdatingActors = false;
+
+	// 2. Move all new actor pointers during mUpdatingActors(true) to mActors
+	for (auto pendingActor : mPendingActors)
+	{
+		mActors.emplace_back(pendingActor);
+	}
+
+	// 1. Move all dead actor pointers from mActors to deadActors
+	std::vector<Actor*> deadActors;
+	for (auto actor : mActors)
+	{
+		if (actor->GetState() == Actor::EDead)
+		{
+			deadActors.push_back(actor);
+		}
+	}
+
+	// 2. Delete the dead actor objects
+	for (auto deadActor : deadActors)
+	{
+		delete deadActor;
+	}
 }
 
+// Double buffering. Initial front buffer is the default SDL screen
 void Game::Render()
 {
+	// 1. Clears the back buffer with the color specified in SetRednerDrawColor
+	SDL_SetRenderDrawColor(mRenderer, 255, 255, 255, 255);
+	SDL_RenderClear(mRenderer);
+
+	// 2. Draw to back buffer using functions such as SDL_RenderCopyEx
+	for (auto spriteComponent : mSpriteComponents)
+	{
+		spriteComponent->Draw(mRenderer);
+	}
+
+	// 3. Swap the front and back buffer to render new content
+	SDL_RenderPresent(mRenderer);
 }
 
 void Game::Shutdown()
 {
+	// Actor::~Actor removes(pops) it from mActors
+	while (!mActors.empty())
+	{
+		delete mActors.back();
+	}
+
+	// Destroy all textures
+	for (auto texture : mTextures)
+	{
+		SDL_DestroyTexture(texture.second);
+	}
+	mTextures.clear();
+
+	// Must be destroyed in reverse of their initialization order
+	SDL_DestroyRenderer(mRenderer);
+	SDL_DestroyWindow(mWindow);
+	IMG_Quit();
+	SDL_Quit();
 }
 
 void Game::AddActor(Actor* actor)
 {
+	if (mUpdatingActors)
+	{
+		mPendingActors.emplace_back(actor);
+	}
+	else
+	{
+		mActors.emplace_back(actor);
+	}
 }
 
 void Game::RemoveActor(Actor* actor)
 {
+	// Memory of removed pending actors are managed in mActors (see Game::Update)
+	auto iter = std::find(mPendingActors.begin(), mPendingActors.end(), actor);
+	if (iter != mPendingActors.end())
+	{
+		std::iter_swap(iter, mPendingActors.end() - 1);
+		mPendingActors.pop_back();
+	}
+
+	// Memory of removed actors are managed in deadActors (see Game::Update)
+	iter = std::find(mActors.begin(), mActors.end(), actor);
+	if (iter != mActors.end())
+	{
+		std::iter_swap(iter, mActors.end() - 1);
+		mActors.pop_back();
+	}
+}
+
+void Game::AddSpriteComponent(SpriteComponent* spriteComponent)
+{
+	// Insert spritecomponent based on draworder (lower order renders first = back)
+	int newUpdateOrder = spriteComponent->GetDrawOrder();
+	auto iter = mSpriteComponents.begin();
+	for (; iter != mSpriteComponents.end(); ++iter)
+	{
+		if (newUpdateOrder < (*iter)->GetDrawOrder())
+		{
+			break;
+		}
+	}
+	mSpriteComponents.insert(iter, spriteComponent);
+}
+
+void Game::RemoveSpriteComponent(SpriteComponent* spriteComponent)
+{
+	// Memory is managed by owner (Actor), so just erase from vector
+	auto iter = std::find(mSpriteComponents.begin(), mSpriteComponents.end(), spriteComponent);
+	if (iter != mSpriteComponents.end())
+	{
+		mSpriteComponents.erase(iter);
+	}
+}
+
+// Implemented in Game class to prevent loading duplicate image files
+SDL_Texture* Game::GetTexture(const std::string& fileName)
+{
+	SDL_Texture* texture = nullptr;
+
+	auto iter = mTextures.find(fileName);
+	if (iter != mTextures.end())
+	{
+		texture = iter->second;
+	}
+	else
+	{
+		// Intermediary to load image to CPU before converting it to SDL_Texture(GPU)
+		SDL_Surface* surface = IMG_Load(fileName.c_str());
+		if (!surface)
+		{
+			SDL_Log("Failed to load image from path: %s", fileName.c_str());
+			return nullptr;
+		}
+
+		// Convert image surface to SDL_Texture
+		texture = SDL_CreateTextureFromSurface(mRenderer, surface);
+		// Free SDL_Surface dynamically allocated by IMG_Load
+		SDL_FreeSurface(surface); 
+		if (!texture)
+		{
+			SDL_Log("Failed to create texture from surface: %s", SDL_GetError());
+			return nullptr;
+		}
+
+		mTextures.emplace(fileName.c_str(), texture);
+	}
+
+	return texture;
 }
 

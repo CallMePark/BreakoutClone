@@ -5,7 +5,7 @@
 #include <algorithm>
 
 Actor::Actor(Game* game)
-	: mState(EActive), mGame(game)
+	: mGame(game), mState(EActive), mPosition(Vector2(0.0f, 0.0f)), mScale(0.0f), mRotation(0.0f)
 {
 	mGame->AddActor(this);
 }
@@ -20,15 +20,15 @@ Actor::~Actor()
 	}
 }
 
-void Actor::ProcessInput(const uint8_t* keyState)
+void Actor::ProcessInput(const InputState& inputState)
 {
 	if (mState == EActive)
 	{
 		for (auto component : mComponents)
 		{
-			component->ProcessInput(keyState);
+			component->ProcessInput(inputState);
 		}
-		ActorInput(keyState);
+		ActorInput(inputState);
 	}
 }
 
@@ -51,6 +51,7 @@ void Actor::UpdateComponents(float deltaTime)
 
 void Actor::AddComponent(Component* component)
 {
+	// Insert component based on updateorder (lower order updates first)
 	int newUpdateOrder = component->GetUpdateOrder();
 	auto iter = mComponents.begin();
 	for (; iter != mComponents.end(); ++iter)
@@ -65,6 +66,7 @@ void Actor::AddComponent(Component* component)
 
 void Actor::RemoveComponent(Component* component)
 {
+	// This is invoked when component is deleted in Actor::~Actor, so just erase from vector
 	auto iter = std::find(mComponents.begin(), mComponents.end(), component);
 	if (iter != mComponents.end())
 	{

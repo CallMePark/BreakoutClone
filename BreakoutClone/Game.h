@@ -3,6 +3,18 @@
 #include "SDL.h"
 
 #include <vector>
+#include <string>
+#include <unordered_map>
+
+struct InputState
+{
+	const Uint8* keyboardState;
+	const Uint32 mouseState;
+	const int mouseX, mouseY;
+
+	InputState(const Uint8* inKeyboardState, const Uint32 inMouseState, const int inMouseX, const int inMouseY)
+		: keyboardState(inKeyboardState), mouseState(inMouseState), mouseX(inMouseX), mouseY(inMouseY) { }
+};
 
 class Game
 {
@@ -18,6 +30,11 @@ public:
 
 	void AddActor(class Actor* actor);
 	void RemoveActor(class Actor* actor);
+
+	void AddSpriteComponent(class SpriteComponent* spriteComponent);
+	void RemoveSpriteComponent(class SpriteComponent* spriteComponent);
+
+	SDL_Texture* GetTexture(const std::string& fileName);
 
 private:
 	// [START] Initialize
@@ -36,4 +53,7 @@ private:
 	std::vector<class Actor*> mActors;
 	std::vector<class Actor*> mPendingActors;
 	bool mUpdatingActors;
+
+	std::vector<class SpriteComponent*> mSpriteComponents;
+	std::unordered_map<std::string, SDL_Texture*> mTextures;
 };

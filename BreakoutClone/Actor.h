@@ -1,20 +1,25 @@
 #pragma once
 
-#include <cstdint>
 #include <vector>
+
+struct Vector2
+{
+	float x, y;
+
+	Vector2(float inX, float inY)
+		: x(inX), y(inY) { }
+};
 
 class Actor
 {
 public:
 	enum State { EActive, EPaused, EDead };
-	State GetState() const { return mState; }
-	void SetState(State state) { mState = state; }
 
 	Actor(class Game* game);
 	virtual ~Actor();
 
-	void ProcessInput(const uint8_t* keyState);
-	virtual void ActorInput(const uint8_t* keyState) {}
+	void ProcessInput(const struct InputState& inputState);
+	virtual void ActorInput(const struct InputState& inputState) {}
 
 	void Update(float deltaTime);
 	void UpdateComponents(float deltaTime);
@@ -23,10 +28,28 @@ public:
 	void AddComponent(class Component* component);
 	void RemoveComponent(class Component* component);
 
-private:
-	State mState;
-	class Game* mGame;
+	// [START] Getters/Setters
+	class Game* GetGame() const { return mGame; }
 
+	State GetState() const { return mState; }
+	void SetState(State state) { mState = state; }
+
+	const Vector2& GetPosition() const { return mPosition; }
+	void SetPosition(const Vector2& inPosition) { mPosition = inPosition; }
+	float GetScale() const { return mScale; }
+	void SetScale(float inScale) { mScale = inScale; }
+	float GetRotation() const { return mRotation; }
+	void SetRotation(float inRotation) { mRotation = inRotation; }
+	// [END] Getters/Setters
+
+private:
 	std::vector<class Component*> mComponents;
+	
+	class Game* mGame;
+	State mState;
+
+	Vector2 mPosition;
+	float mScale;
+	float mRotation;
 };
 
