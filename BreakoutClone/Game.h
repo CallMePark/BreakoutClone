@@ -11,17 +11,20 @@ struct InputState
 	const Uint8* keyboardState;
 	const Uint32 mouseState;
 	const int mouseX, mouseY;
+	const bool isMouseEnabled;
 
-	InputState(const Uint8* inKeyboardState, const Uint32 inMouseState, const int inMouseX, const int inMouseY)
-		: keyboardState(inKeyboardState), mouseState(inMouseState), mouseX(inMouseX), mouseY(inMouseY) { }
+	InputState(const Uint8* inKeyboardState, const Uint32 inMouseState, const int inMouseX, 
+		const int inMouseY, const bool inIsMouseEnabled)
+		: keyboardState(inKeyboardState), mouseState(inMouseState), mouseX(inMouseX), 
+		mouseY(inMouseY), isMouseEnabled(inIsMouseEnabled) { }
 };
+
+static constexpr int WINDOW_WIDTH = 1024;
+static constexpr int WINDOW_HEIGHT = 768;
 
 class Game
 {
 public:
-	static constexpr int WINDOW_WIDTH = 1024;
-	static constexpr int WINDOW_HEIGHT = 768;
-
 	Game();
 
 	bool Initialize();
@@ -49,6 +52,8 @@ private:
 	void Render();
 	bool mIsRunning;
 	// [END] GAME LOOP
+
+	void LoadData();
 
 	std::vector<class Actor*> mActors;
 	std::vector<class Actor*> mPendingActors;

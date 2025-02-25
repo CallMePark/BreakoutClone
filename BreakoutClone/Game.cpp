@@ -1,6 +1,8 @@
 #include "Game.h"
 #include "Actor.h"
 #include "SpriteComponent.h"
+#include "ActorBackground.h"
+#include "ActorPlayer.h"
 #include "SDL_image.h"
 
 #include <algorithm>
@@ -31,7 +33,7 @@ bool Game::Initialize()
 		SDL_WINDOWPOS_CENTERED,
 		WINDOW_WIDTH,
 		WINDOW_HEIGHT,
-		SDL_WINDOW_RESIZABLE);
+		0);
 	if (!mWindow)
 	{
 		SDL_Log("Failed to create SDL window: %s", SDL_GetError());
@@ -49,9 +51,19 @@ bool Game::Initialize()
 		return false;
 	}
 
+	LoadData();
+
+	SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
 	mTicksCount = SDL_GetTicks();
 
 	return true;
+}
+
+void Game::LoadData()
+{
+	Actor* a = new ActorBackground(this);
+
+	a = new ActorPlayer(this);
 }
 
 void Game::RunGameLoop()
@@ -74,6 +86,11 @@ void Game::ProcessInput()
 		case SDL_QUIT: // End program at user-requested quit
 			mIsRunning = false;
 			break;
+		case SDL_KEYDOWN: // Disable mouse motion on key press
+			SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
+			break;
+		case SDL_MOUSEBUTTONDOWN: // Enable mouse motiohn on mouse button press
+			SDL_EventState(SDL_MOUSEMOTION, SDL_ENABLE);
 		}
 	}
 
@@ -81,7 +98,9 @@ void Game::ProcessInput()
 	const Uint8* keyState = SDL_GetKeyboardState(NULL);
 	int mouseX, mouseY;
 	const Uint32 mouseState = SDL_GetMouseState(&mouseX, &mouseY);
-	InputState inputState{ keyState, mouseState, mouseX, mouseY };
+	const Uint8 mouseMotionState = SDL_EventState(SDL_MOUSEMOTION, SDL_QUERY);
+	bool isMouseEnabled = (mouseMotionState == SDL_ENABLE) ? true : false;
+	InputState inputState{ keyState, mouseState, mouseX, mouseY, isMouseEnabled };
 
 	// End game if ESC key or middle mouse button is pressed
 	if (keyState[SDL_SCANCODE_ESCAPE] || mouseState == SDL_BUTTON_MIDDLE)

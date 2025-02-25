@@ -2,8 +2,6 @@
 #include "Actor.h"
 #include "Game.h"
 
-#include <numbers>
-
 SpriteComponent::SpriteComponent(Actor* actor, int drawOrder)
 	: Component(actor), mTexture(nullptr), mDrawOrder(drawOrder), mTextureWidth(0), mTextureHeight(0)
 {
@@ -29,8 +27,10 @@ void SpriteComponent::Draw(SDL_Renderer* renderer)
 		rect.x = static_cast<int>(mOwner->GetPosition().x - rect.w / 2);
 		rect.y = static_cast<int>(mOwner->GetPosition().y - rect.h / 2);
 
-		// Use RenderCopyEx if texture rotation/flip is required
-		SDL_RenderCopy(renderer, mTexture, nullptr, &rect);
+		// Use RenderCopy if texture rotation/flip is not required
+		float pi = 3.1415927f;
+		float rotDeg = mOwner->GetRotation() * 180.0f / pi;
+		SDL_RenderCopyEx(renderer, mTexture, nullptr, &rect, rotDeg, nullptr, SDL_FLIP_NONE);
 	}
 }
 
