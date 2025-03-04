@@ -1,14 +1,8 @@
 #pragma once
 
+#include "Math.h"
+
 #include <vector>
-
-struct Vector2
-{
-	float x, y;
-
-	Vector2(float inX, float inY)
-		: x(inX), y(inY) { }
-};
 
 class Actor
 {
@@ -34,8 +28,8 @@ public:
 	State GetState() const { return mState; }
 	void SetState(State state) { mState = state; }
 
-	const Vector2& GetPosition() const { return mPosition; }
-	void SetPosition(const Vector2& inPosition) { mPosition = inPosition; }
+	const Vector2D& GetPosition() const { return mPosition; }
+	void SetPosition(const Vector2D& inPosition) { mPosition = inPosition; }
 	float GetScale() const { return mScale; }
 	void SetScale(float inScale) { mScale = inScale; }
 	float GetRotation() const { return mRotation; }
@@ -48,7 +42,7 @@ private:
 	class Game* mGame;
 	State mState;
 
-	Vector2 mPosition;
+	Vector2D mPosition;
 	float mScale;
 	float mRotation;
 };

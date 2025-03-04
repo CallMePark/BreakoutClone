@@ -15,7 +15,7 @@ private:
 
 	float mMaxSpeed;
 	float mMoveDir;
-
+	
 	float mMousePosX;
 	bool mIsMouseEnabled;
 

@@ -6,7 +6,7 @@ ActorBackground::ActorBackground(Game* game)
 	: Actor(game)
 {
 	SpriteComponent* bgSprite = new SpriteComponent(this);
-	bgSprite->SetTexture(GetGame()->GetTexture("Assets/BGLevel1.png"));
+	bgSprite->SetTexture(GetGame()->GetTexture("Assets/Background_Level1.png"));
 
-	SetPosition(Vector2(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f));
+	SetPosition(Vector2D(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f));
 }

@@ -61,8 +61,9 @@ bool Game::Initialize()
 
 void Game::LoadData()
 {
-	Actor* a = new ActorBackground(this);
+	// TODO: Need level loader for all blocks.
 
+	Actor* a = new ActorBackground(this);
 	a = new ActorPlayer(this);
 }
 
@@ -97,9 +98,12 @@ void Game::ProcessInput()
 	// Build input state
 	const Uint8* keyState = SDL_GetKeyboardState(NULL);
 	int mouseX, mouseY;
+
 	const Uint32 mouseState = SDL_GetMouseState(&mouseX, &mouseY);
+
 	const Uint8 mouseMotionState = SDL_EventState(SDL_MOUSEMOTION, SDL_QUERY);
 	bool isMouseEnabled = (mouseMotionState == SDL_ENABLE) ? true : false;
+
 	InputState inputState{ keyState, mouseState, mouseX, mouseY, isMouseEnabled };
 
 	// End game if ESC key or middle mouse button is pressed
@@ -119,16 +123,7 @@ void Game::ProcessInput()
 
 void Game::Update()
 {
-	// Limit frame rate to approx. 62.5 FPS (60 would require float type)
-	Uint32 capTicksCount = mTicksCount + 16;
-	if (SDL_GetTicks() < capTicksCount)
-	{
-		SDL_Delay(capTicksCount - SDL_GetTicks()); 
-	}
-	// In case FPS < 20, set deltaTime to 0.05 (~20FPS) to prevent large single update
-	float deltaTime = std::min(((SDL_GetTicks() - mTicksCount) / 1000.0f), 0.05f);
-	mTicksCount = SDL_GetTicks();
-
+	float deltaTime = CalcDeltaTime();
 	/*SDL_Log("Current FPS: %.0f", (1 / deltaTime));*/
 
 	// 1. Update all actors in mActors
@@ -160,6 +155,25 @@ void Game::Update()
 	{
 		delete deadActor;
 	}
+}
+
+float Game::CalcDeltaTime()
+{
+	// Limit frame rate to approx. 62.5 FPS (60 would require float type)
+	Uint32 capTicksCount = mTicksCount + 16;
+
+	// If FPS is higher than 62.5FPS, pause execution until it gets lower
+	if (SDL_GetTicks() < capTicksCount)
+	{
+		SDL_Delay(capTicksCount - SDL_GetTicks());
+	}
+	// In case FPS < 20, set deltaTime to 0.05 (~20FPS) to prevent large single update
+	float deltaTime = std::min(((SDL_GetTicks() - mTicksCount) / 1000.0f), 0.05f);
+
+	// Update for next deltaTime calculation
+	mTicksCount = SDL_GetTicks();
+
+	return deltaTime;
 }
 
 // Double buffering. Initial front buffer is the default SDL screen
@@ -234,7 +248,7 @@ void Game::RemoveActor(Actor* actor)
 
 void Game::AddSpriteComponent(SpriteComponent* spriteComponent)
 {
-	// Insert spritecomponent based on draworder (lower order renders first = back)
+	// Insert SpriteComponent based on drawOrder (lower order renders first = back)
 	int newUpdateOrder = spriteComponent->GetDrawOrder();
 	auto iter = mSpriteComponents.begin();
 	for (; iter != mSpriteComponents.end(); ++iter)
@@ -292,4 +306,3 @@ SDL_Texture* Game::GetTexture(const std::string& fileName)
 
 	return texture;
 }
-

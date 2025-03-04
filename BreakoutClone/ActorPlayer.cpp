@@ -9,9 +9,9 @@ ActorPlayer::ActorPlayer(Game* game)
 	: Actor(game), mMaxSpeed(400.0f), mMoveDir(0.0f), mMousePosX(0.0f), mIsMouseEnabled(false)
 {
 	mSpriteComp = new SpriteComponent(this);
-	mSpriteComp->SetTexture(GetGame()->GetTexture("Assets/paddleRed.png"));
+	mSpriteComp->SetTexture(GetGame()->GetTexture("Assets/Paddle_Red.png"));
 
-	SetPosition(Vector2(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT - 50.0f));
+	SetPosition(Vector2D(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT - 50.0f));
 }
 
 void ActorPlayer::ActorInput(const InputState& inputState)
@@ -33,7 +33,12 @@ void ActorPlayer::ActorInput(const InputState& inputState)
 	{
 		mIsMouseEnabled = true;
 		mMousePosX = (float)inputState.mouseX;
-		mMoveDir = (GetPosition().x < mMousePosX) ? 1.0f : -1.0f;
+
+		float currPosX = GetPosition().x;
+		if (currPosX != mMousePosX)
+		{
+			mMoveDir = (currPosX < mMousePosX) ? 1.0f : -1.0f;
+		}
 	}
 }
 
@@ -42,7 +47,7 @@ void ActorPlayer::UpdateActor(float deltaTime)
 	// Handle keyboard/mouse movement
 	if (!IsNearZero(mMoveDir))
 	{
-		Vector2 pos = GetPosition();
+		Vector2D pos = GetPosition();
 		pos.x += mMoveDir * mMaxSpeed * deltaTime;
 
 		// If mouse is enabled, prevent paddle from overshooting mouse position x
@@ -64,7 +69,7 @@ float ActorPlayer::CalcEdgeCollision(float inPosX)
 {
 	float posX = inPosX;
 
-	float halfSpriteWidth = (mSpriteComp->GetTextureWidth() / 2);
+	float halfSpriteWidth = (mSpriteComp->GetTextureWidth() / 2.0f);
 	if (posX - halfSpriteWidth < 0.0f)
 	{
 		posX = 0.0f + halfSpriteWidth;

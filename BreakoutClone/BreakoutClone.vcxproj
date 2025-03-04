@@ -136,6 +136,8 @@
     <ClInclude Include="ActorPlayer.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="Game.h" />
+    <ClInclude Include="GridSpatialPartition.h" />
+    <ClInclude Include="Math.h" />
     <ClInclude Include="SpriteComponent.h" />
   </ItemGroup>
   <ItemGroup>
@@ -144,6 +146,7 @@
     <ClCompile Include="ActorPlayer.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="GridSpatialPartition.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="SpriteComponent.cpp" />
   </ItemGroup>

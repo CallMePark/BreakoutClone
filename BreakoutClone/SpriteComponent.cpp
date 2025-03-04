@@ -30,7 +30,14 @@ void SpriteComponent::Draw(SDL_Renderer* renderer)
 		// Use RenderCopy if texture rotation/flip is not required
 		float pi = 3.1415927f;
 		float rotDeg = mOwner->GetRotation() * 180.0f / pi;
-		SDL_RenderCopyEx(renderer, mTexture, nullptr, &rect, rotDeg, nullptr, SDL_FLIP_NONE);
+		SDL_RenderCopyEx(
+			renderer, 
+			mTexture, 
+			nullptr, 
+			&rect, 
+			Math::ToDegree(mOwner->GetRotation()), // Angle in degree, rotates clockwise
+			nullptr, 
+			SDL_FLIP_NONE);
 	}
 }
 
