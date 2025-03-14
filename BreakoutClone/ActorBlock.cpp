@@ -1,26 +1,28 @@
-#include "ActorBackground.h"
+#include "ActorBlock.h"
 #include "Game.h"
 #include "SpriteComponent.h"
 #include "CollisionComponent.h"
 
-ActorBackground::ActorBackground(Game* game)
+
+ActorBlock::ActorBlock(Game* game)
 	: Actor(game)
 {
-	SpriteComponent* spriteComp = new SpriteComponent(this);
-	spriteComp->SetTexture(GetGame()->GetTexture("Assets/Background_Level1.png"));
+	mSpriteComp = new SpriteComponent(this);
+	mSpriteComp->SetTexture(GetGame()->GetTexture("Assets/Block_Blue.png"));
 
 	mCollisionComp = new CollisionComponent(this);
-	float texHeightHalf = spriteComp->GetTextureHeight() * 0.5f;
-	float texWidthHalf = spriteComp->GetTextureWidth() * 0.5f;
+	float texHeightHalf = mSpriteComp->GetTextureHeight() * 0.5f;
+	float texWidthHalf = mSpriteComp->GetTextureWidth() * 0.5f;
 	Vector2D min{ -texWidthHalf, -texHeightHalf };
 	Vector2D max{ texWidthHalf, texHeightHalf };
 	AABB box{ min, max };
 	mCollisionComp->SetObjectAABB(box);
 
-	SetPosition(Vector2D(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f));
+	SetScale(1.0f);
+	SetPosition(Vector2D(32.0f + (64.0f * 3), 16.0f + (32.0f * 3)));
 }
 
-void ActorBackground::RenderActorDebug(SDL_Renderer* renderer)
+void ActorBlock::RenderActorDebug(SDL_Renderer* renderer)
 {
 	SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
 

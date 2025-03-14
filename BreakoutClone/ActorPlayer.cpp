@@ -1,30 +1,45 @@
 #include "ActorPlayer.h"
 #include "Game.h"
 #include "SpriteComponent.h"
+#include "MoveComponent.h"
+#include "CollisionComponent.h"
+#include "SDL.h"
 
-#include <cmath>
 #include <algorithm>
 
 ActorPlayer::ActorPlayer(Game* game)
-	: Actor(game), mMaxSpeed(400.0f), mMoveDir(0.0f), mMousePosX(0.0f), mIsMouseEnabled(false)
+	: Actor(game), mMousePosX(0.0f), mIsMouseEnabled(false)
 {
 	mSpriteComp = new SpriteComponent(this);
 	mSpriteComp->SetTexture(GetGame()->GetTexture("Assets/Paddle_Red.png"));
 
+	mMoveComp = new MoveComponent(this);
+	mMoveComp->SetMaxForwardSpeed(300.0f);
+
+	mCollisionComp = new CollisionComponent(this);
+	float texHeightHalf = mSpriteComp->GetTextureHeight() * 0.5f;
+	float texWidthHalf = mSpriteComp->GetTextureWidth() * 0.5f;
+	Vector2D min{ -texWidthHalf, -texHeightHalf };
+	Vector2D max{ texWidthHalf, texHeightHalf };
+	AABB box{ min, max };
+	mCollisionComp->SetObjectAABB(box);
+
 	SetPosition(Vector2D(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT - 50.0f));
 }
 
-void ActorPlayer::ActorInput(const InputState& inputState)
+void ActorPlayer::ProcessActorInput(const InputState& inputState)
 {
+	float maxForwardSpeed = mMoveComp->GetMaxForwardSpeed();
+	float forwardSpeed = 0.0f;
+	
 	// Handle keyboard input
-	mMoveDir = 0.0f;
-	if (inputState.keyboardState[SDL_SCANCODE_D])
+	if (inputState.keyboardState[SDL_SCANCODE_D]) // Move Right
 	{
-		mMoveDir += 1.0f;
+		forwardSpeed += maxForwardSpeed;
 	}
-	if (inputState.keyboardState[SDL_SCANCODE_A])
+	if (inputState.keyboardState[SDL_SCANCODE_A]) // Move Left
 	{
-		mMoveDir -= 1.0f;
+		forwardSpeed += -maxForwardSpeed;
 	}
 
 	// Handle mouse input
@@ -32,40 +47,40 @@ void ActorPlayer::ActorInput(const InputState& inputState)
 	if (inputState.isMouseEnabled)
 	{
 		mIsMouseEnabled = true;
-		mMousePosX = (float)inputState.mouseX;
+		mMousePosX = static_cast<int>(inputState.mouseX);
 
+		// If actor is not at mouse position, move toward it
 		float currPosX = GetPosition().x;
 		if (currPosX != mMousePosX)
 		{
-			mMoveDir = (currPosX < mMousePosX) ? 1.0f : -1.0f;
+			forwardSpeed += (currPosX < mMousePosX) ? maxForwardSpeed : -maxForwardSpeed;
 		}
 	}
+
+	mMoveComp->SetForwardSpeed(forwardSpeed);
 }
 
 void ActorPlayer::UpdateActor(float deltaTime)
 {
-	// Handle keyboard/mouse movement
-	if (!IsNearZero(mMoveDir))
+	// Actor-Specific Collision
+	// Clamp Actor(paddle) position to mouse (if mouse enabled) and screen edges
+	if (!Math::IsNearZero(mMoveComp->GetForwardSpeed()))
 	{
 		Vector2D pos = GetPosition();
-		pos.x += mMoveDir * mMaxSpeed * deltaTime;
 
-		// If mouse is enabled, prevent paddle from overshooting mouse position x
 		if (mIsMouseEnabled)
 		{
-			pos.x = std::clamp(pos.x, 
-				std::min(GetPosition().x, mMousePosX),	// Min before update
-				std::max(GetPosition().x, mMousePosX)	// Max before update
-			);
+			pos.x = ClampPositionToMouse(pos.x);
 		}
 
-		pos.x = CalcEdgeCollision(pos.x);
+		pos.x = ClampPositionToScreenEdge(pos.x);
+
 		SetPosition(pos);
 	}
 }
 
 // Limit horizontal movement to the edge of screen
-float ActorPlayer::CalcEdgeCollision(float inPosX)
+float ActorPlayer::ClampPositionToScreenEdge(float inPosX)
 {
 	float posX = inPosX;
 
@@ -82,14 +97,34 @@ float ActorPlayer::CalcEdgeCollision(float inPosX)
 	return posX;
 }
 
-bool ActorPlayer::IsNearZero(float value, float epsilon)
+// If mouse is enabled, prevent paddle from overshooting mouse position x
+float ActorPlayer::ClampPositionToMouse(float inPosX)
 {
-	if (fabs(value) <= epsilon)
+	float posX = inPosX;
+	
+	float forwardSpeed = mMoveComp->GetForwardSpeed();
+	if (forwardSpeed > 0.0f)
 	{
-		return true;
+		posX = std::min(posX, mMousePosX);
 	}
-	else
+	else if (forwardSpeed < 0.0f)
 	{
-		return false;
+		posX = std::max(posX, mMousePosX);
 	}
+
+	return posX;
+}
+
+void ActorPlayer::RenderActorDebug(SDL_Renderer* renderer)
+{
+	SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+
+	const AABB& box = mCollisionComp->GetWorldAABB();
+	SDL_Rect debugBox = {
+		static_cast<int>(box.min.x),
+		static_cast<int>(box.min.y),
+		static_cast<int>(box.max.x - box.min.x),
+		static_cast<int>(box.max.y - box.min.y)
+	};
+	SDL_RenderDrawRect(renderer, &debugBox);
 }

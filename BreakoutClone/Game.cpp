@@ -3,16 +3,18 @@
 #include "SpriteComponent.h"
 #include "ActorBackground.h"
 #include "ActorPlayer.h"
+#include "ActorBlock.h"
+#include "ActorBall.h"
 #include "SDL_image.h"
+#include "GridSpatialPartition.h"
 
 #include <algorithm>
 
 Game::Game()
-	: mWindow(nullptr), 
-	mRenderer(nullptr), 
-	mTicksCount(0), 
-	mIsRunning(true), 
-	mUpdatingActors(false) {}
+	: mWindow(nullptr), mRenderer(nullptr), mTicksCount(0), mIsRunning(true), mUpdatingActors(false)
+{
+	mGSP = new GridSpatialPartition();
+}
 
 bool Game::Initialize()
 {
@@ -29,11 +31,12 @@ bool Game::Initialize()
 
 	mWindow = SDL_CreateWindow(
 		"Breakout Clone",
+		SDL_WINDOWPOS_CENTERED, 
 		SDL_WINDOWPOS_CENTERED,
-		SDL_WINDOWPOS_CENTERED,
-		WINDOW_WIDTH,
-		WINDOW_HEIGHT,
-		0);
+		WINDOW_WIDTH, 
+		WINDOW_HEIGHT, 
+		0
+	);
 	if (!mWindow)
 	{
 		SDL_Log("Failed to create SDL window: %s", SDL_GetError());
@@ -51,20 +54,20 @@ bool Game::Initialize()
 		return false;
 	}
 
-	LoadData();
-
 	SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
 	mTicksCount = SDL_GetTicks();
+
+	LoadData();
 
 	return true;
 }
 
 void Game::LoadData()
 {
-	// TODO: Need level loader for all blocks.
-
 	Actor* a = new ActorBackground(this);
 	a = new ActorPlayer(this);
+	a = new ActorBlock(this);
+	a = new ActorBall(this);
 }
 
 void Game::RunGameLoop()
@@ -189,6 +192,14 @@ void Game::Render()
 		spriteComponent->Draw(mRenderer);
 	}
 
+	// DEBUG RENDERS
+	mGSP->RenderGridDebug(mRenderer);
+	for (auto actor : mActors)
+	{
+		actor->RenderActorDebug(mRenderer);
+	}
+	// DEBUG RENDERS
+
 	// 3. Swap the front and back buffer to render new content
 	SDL_RenderPresent(mRenderer);
 }
@@ -207,6 +218,9 @@ void Game::Shutdown()
 		SDL_DestroyTexture(texture.second);
 	}
 	mTextures.clear();
+
+	// Destroy GridSpatialPartition object
+	delete mGSP;
 
 	// Must be destroyed in reverse of their initialization order
 	SDL_DestroyRenderer(mRenderer);

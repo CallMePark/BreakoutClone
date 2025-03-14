@@ -37,7 +37,8 @@ void SpriteComponent::Draw(SDL_Renderer* renderer)
 			&rect, 
 			Math::ToDegree(mOwner->GetRotation()), // Angle in degree, rotates clockwise
 			nullptr, 
-			SDL_FLIP_NONE);
+			SDL_FLIP_NONE
+		);
 	}
 }
 

@@ -2,16 +2,15 @@
 
 #include "Actor.h"
 
-#include <unordered_map>
-
-class ActorBackground : public Actor
+class ActorBlock : public Actor
 {
 public:
-	ActorBackground(class Game* game);
+	ActorBlock(class Game* game);
 
 	void RenderActorDebug(struct SDL_Renderer* renderer) override;
 
 private:
+	class SpriteComponent* mSpriteComp;
 	class CollisionComponent* mCollisionComp;
 };
 

@@ -5,7 +5,8 @@
 #include <algorithm>
 
 Actor::Actor(Game* game)
-	: mGame(game), mState(EActive), mPosition(Vector2D(0.0f, 0.0f)), mScale(1.0f), mRotation(0.0f)
+	: mGame(game), mState(EActive), mPosition(Vector2D::Zero), mScale(1.0f), mRotation(0.0f),
+	mIsUpdateTransform(false)
 {
 	mGame->AddActor(this);
 }
@@ -28,7 +29,7 @@ void Actor::ProcessInput(const InputState& inputState)
 		{
 			component->ProcessInput(inputState);
 		}
-		ActorInput(inputState);
+		ProcessActorInput(inputState);
 	}
 }
 
@@ -36,8 +37,12 @@ void Actor::Update(float deltaTime)
 {
 	if (mState == EActive)
 	{
+		OnUpdateTransform(); // Preps transform for the following updates
+
 		UpdateComponents(deltaTime);
 		UpdateActor(deltaTime);
+
+		OnUpdateTransform(); // Preps transform for any post-update transform update
 	}
 }
 
@@ -49,9 +54,22 @@ void Actor::UpdateComponents(float deltaTime)
 	}
 }
 
+void Actor::OnUpdateTransform()
+{
+	if (mIsUpdateTransform)
+	{
+		mIsUpdateTransform = false;
+
+		for (auto component : mComponents)
+		{
+			component->OnUpdateTransform();
+		}
+	}
+}
+
 void Actor::AddComponent(Component* component)
 {
-	// Insert component based on updateorder (lower order updates first)
+	// Insert component based on its update order (lower order updates first)
 	int newUpdateOrder = component->GetUpdateOrder();
 	auto iter = mComponents.begin();
 	for (; iter != mComponents.end(); ++iter)
@@ -67,6 +85,7 @@ void Actor::AddComponent(Component* component)
 void Actor::RemoveComponent(Component* component)
 {
 	// This is invoked when component is deleted in Actor::~Actor, so just erase from vector
+	// To maintain component update order, do not attempt to optimize with iter_swap and pop_back
 	auto iter = std::find(mComponents.begin(), mComponents.end(), component);
 	if (iter != mComponents.end())
 	{

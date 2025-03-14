@@ -2,12 +2,11 @@
 
 #include "Actor.h"
 
-class ActorPlayer : public Actor
+class ActorBall : public Actor
 {
 public:
-	ActorPlayer(class Game* game);
+	ActorBall(class Game* game);
 
-	void ProcessActorInput(const struct InputState& inputState) override;
 	void UpdateActor(float deltaTime) override;
 	void RenderActorDebug(struct SDL_Renderer* renderer) override;
 
@@ -16,9 +15,6 @@ private:
 	class MoveComponent* mMoveComp;
 	class CollisionComponent* mCollisionComp;
 
-	float mMousePosX;
-	bool mIsMouseEnabled;
-
 	float ClampPositionToScreenEdge(float inPosX);
-	float ClampPositionToMouse(float inPosX);
 };
+
