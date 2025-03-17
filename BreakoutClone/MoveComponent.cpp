@@ -3,7 +3,7 @@
 
 MoveComponent::MoveComponent(Actor* owner, int updateOrder)
 	: Component(owner, updateOrder), mRotationSpeed(0.0f), mMaxRotationSpeed(0.0f), 
-	mForwardSpeed(0.0f), mMaxForwardSpeed(0.0f)
+	mForwardSpeed(0.0f), mMaxForwardSpeed(0.0f), mCurrentVelocity(Vector2D::Zero)
 {}
 
 void MoveComponent::Update(float deltaTime)
@@ -16,10 +16,14 @@ void MoveComponent::Update(float deltaTime)
 		mOwner->SetRotation(rot);
 	}
 
+	mCurrentVelocity = Vector2D::Zero;
 	if (!Math::IsNearZero(mForwardSpeed))
 	{
 		Vector2D pos = mOwner->GetPosition();
-		pos += mOwner->GetForward() * mForwardSpeed * deltaTime;
+
+		mCurrentVelocity = mOwner->GetForward() * mForwardSpeed;
+
+		pos += mCurrentVelocity * deltaTime;
 		mOwner->SetPosition(pos);
 	}
 }

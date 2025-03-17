@@ -49,3 +49,13 @@ void SpriteComponent::SetTexture(SDL_Texture* texture)
 	// Set texture width and height
 	SDL_QueryTexture(texture, nullptr, nullptr, &mTextureWidth, &mTextureHeight);
 }
+
+float SpriteComponent::GetScaledWidth() const
+{
+	return mTextureWidth * mOwner->GetScale();
+}
+
+float SpriteComponent::GetScaledHeight() const
+{
+	return mTextureHeight * mOwner->GetScale();
+}

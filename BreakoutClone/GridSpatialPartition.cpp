@@ -2,6 +2,8 @@
 #include "CollisionComponent.h"
 #include "SDL.h"
 
+#include <algorithm>
+
 GridSpatialPartition::GridSpatialPartition()
 	: mGridSize(0)
 {
@@ -81,6 +83,10 @@ Cell& GridSpatialPartition::PositionToCell(const Vector2D& inPosition)
 {
 	int row = static_cast<int>(inPosition.y * INV_CELL_H);
 	int col = static_cast<int>(inPosition.x * INV_CELL_W);
+
+	row = std::clamp(row, 0, NUM_CELL_ROW - 1);
+	col = std::clamp(col, 0, NUM_CELL_COL - 1);
+
 	return mGrid[row][col];
 }
 

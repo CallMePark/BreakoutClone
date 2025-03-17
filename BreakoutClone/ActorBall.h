@@ -15,6 +15,6 @@ private:
 	class MoveComponent* mMoveComp;
 	class CollisionComponent* mCollisionComp;
 
-	float ClampPositionToScreenEdge(float inPosX);
+	void ResolveWallCollision();
 };
 

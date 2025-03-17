@@ -20,10 +20,14 @@ public:
 	float GetMaxForwardSpeed() const { return mMaxForwardSpeed; }
 	void SetMaxForwardSpeed(float speed) { mMaxForwardSpeed = speed; }
 
+	const Vector2D& GetVelocity() const { return mCurrentVelocity; }
+
 private:
 	float mRotationSpeed; // radians/second
 	float mMaxRotationSpeed;
 	float mForwardSpeed; // units/second
 	float mMaxForwardSpeed;
+
+	Vector2D mCurrentVelocity;
 };
 

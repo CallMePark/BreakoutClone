@@ -19,6 +19,6 @@ private:
 	float mMousePosX;
 	bool mIsMouseEnabled;
 
-	float ClampPositionToScreenEdge(float inPosX);
+	float ResolveWallCollision(float inPosX);
 	float ClampPositionToMouse(float inPosX);
 };

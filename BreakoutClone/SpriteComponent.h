@@ -12,8 +12,11 @@ public:
 	void SetTexture(struct SDL_Texture* texture);
 
 	int GetDrawOrder() const { return mDrawOrder; }
-	int GetTextureHeight() const { return mTextureHeight; }
 	int GetTextureWidth() const { return mTextureWidth; }
+	int GetTextureHeight() const { return mTextureHeight; }
+
+	float GetScaledWidth() const;
+	float GetScaledHeight() const;
 
 private:
 	struct SDL_Texture* mTexture;

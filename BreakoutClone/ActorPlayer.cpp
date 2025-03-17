@@ -17,10 +17,10 @@ ActorPlayer::ActorPlayer(Game* game)
 	mMoveComp->SetMaxForwardSpeed(300.0f);
 
 	mCollisionComp = new CollisionComponent(this);
-	float texHeightHalf = mSpriteComp->GetTextureHeight() * 0.5f;
-	float texWidthHalf = mSpriteComp->GetTextureWidth() * 0.5f;
-	Vector2D min{ -texWidthHalf, -texHeightHalf };
-	Vector2D max{ texWidthHalf, texHeightHalf };
+	float halfTexWidth = mSpriteComp->GetTextureWidth() * 0.5f;
+	float halfTexHeight = mSpriteComp->GetTextureHeight() * 0.5f;
+	Vector2D min{ -halfTexWidth, -halfTexHeight };
+	Vector2D max{ halfTexWidth, halfTexHeight };
 	AABB box{ min, max };
 	mCollisionComp->SetObjectAABB(box);
 
@@ -73,18 +73,18 @@ void ActorPlayer::UpdateActor(float deltaTime)
 			pos.x = ClampPositionToMouse(pos.x);
 		}
 
-		pos.x = ClampPositionToScreenEdge(pos.x);
+		pos.x = ResolveWallCollision(pos.x);
 
 		SetPosition(pos);
 	}
 }
 
 // Limit horizontal movement to the edge of screen
-float ActorPlayer::ClampPositionToScreenEdge(float inPosX)
+float ActorPlayer::ResolveWallCollision(float inPosX)
 {
 	float posX = inPosX;
 
-	float halfSpriteWidth = (mSpriteComp->GetTextureWidth() / 2.0f);
+	float halfSpriteWidth = (mSpriteComp->GetScaledWidth() * 0.5f);
 	if (posX - halfSpriteWidth < 0.0f)
 	{
 		posX = 0.0f + halfSpriteWidth;
