@@ -38,11 +38,9 @@ void ActorBall::ResolveWallCollision()
 {
 	float halfSpriteWidth = (mSpriteComp->GetScaledWidth() * 0.5f);
 	float halfSpriteHeight = (mSpriteComp->GetScaledHeight() * 0.5f);
-
 	const AABB& box = mCollisionComp->GetWorldAABB();
-
-	// Set position to collision point and rotate accordingly
 	Vector2D vel = mMoveComp->GetVelocity();
+	
 	if (box.min.x < 0.0f) // Left Wall
 	{
 		float rot = GetRotation();

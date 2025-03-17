@@ -63,6 +63,7 @@ private:
 	std::unordered_map<std::string, SDL_Texture*> mTextures;
 
 	class GridSpatialPartition* mGSP;
+	class LevelLoader* mLevelLoader;
 
 	void LoadData();
 	float CalcDeltaTime();

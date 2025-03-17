@@ -17,9 +17,6 @@ ActorBlock::ActorBlock(Game* game)
 	Vector2D max{ texWidthHalf, texHeightHalf };
 	AABB box{ min, max };
 	mCollisionComp->SetObjectAABB(box);
-
-	SetScale(1.0f);
-	SetPosition(Vector2D(32.0f + (64.0f * 3), 16.0f + (32.0f * 3)));
 }
 
 void ActorBlock::RenderActorDebug(SDL_Renderer* renderer)

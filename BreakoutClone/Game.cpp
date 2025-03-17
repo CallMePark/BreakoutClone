@@ -3,10 +3,10 @@
 #include "SpriteComponent.h"
 #include "ActorBackground.h"
 #include "ActorPlayer.h"
-#include "ActorBlock.h"
 #include "ActorBall.h"
-#include "SDL_image.h"
 #include "GridSpatialPartition.h"
+#include "LevelLoader.h"
+#include "SDL_image.h"
 
 #include <algorithm>
 
@@ -14,6 +14,7 @@ Game::Game()
 	: mWindow(nullptr), mRenderer(nullptr), mTicksCount(0), mIsRunning(true), mUpdatingActors(false)
 {
 	mGSP = new GridSpatialPartition();
+	mLevelLoader = new LevelLoader(this);
 }
 
 bool Game::Initialize()
@@ -66,8 +67,13 @@ void Game::LoadData()
 {
 	Actor* a = new ActorBackground(this);
 	a = new ActorPlayer(this);
-	a = new ActorBlock(this);
 	a = new ActorBall(this);
+
+	std::string levelFileName = "Assets/BlockGrid_Level1.csv";
+	if (!mLevelLoader->LoadLevel(levelFileName, a))
+	{
+		mIsRunning = false;
+	}
 }
 
 void Game::RunGameLoop()
