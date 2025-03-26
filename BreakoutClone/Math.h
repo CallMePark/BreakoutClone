@@ -11,7 +11,7 @@ namespace Math
 	inline float ToDegree(float radian) { return radian * DEGREES_PER_RADIAN; }
 	inline float ToRadian(float degree) { return degree * RADIANS_PER_DEGREE; }
 
-	inline bool IsNearZero(float value, float epsilon = 0.0001f)
+	inline bool IsNearZero(float value, float epsilon = 0.001f)
 	{
 		return fabs(value) < epsilon;
 	}
@@ -30,9 +30,14 @@ public:
 		: x(inX), y(inY)
 	{}
 
-	bool IsNearZero(float epsilon = 0.0001f) const
+	bool IsNearZero(float epsilon = 0.001f) const
 	{
 		return (fabs(x) < epsilon) && (fabs(y) < epsilon);
+	}
+
+	float DistanceSqrTo(const Vector2D& other) const
+	{
+		return (other.x - x) * (other.x - x) + (other.y - y) * (other.y - y);
 	}
 
 	Vector2D operator+(const Vector2D& other)

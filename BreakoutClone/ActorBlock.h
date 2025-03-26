@@ -9,6 +9,8 @@ public:
 
 	void RenderActorDebug(struct SDL_Renderer* renderer) override;
 
+	void OnCollision() override;
+
 private:
 	class SpriteComponent* mSpriteComp;
 	class CollisionComponent* mCollisionComp;

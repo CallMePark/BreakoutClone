@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Math.h"
+#include "CollisionComponent.h"
 
 #include <unordered_set>
 #include <vector>
@@ -15,17 +16,21 @@ constexpr float INV_CELL_W = 1.0f / CELL_W;
 
 struct Cell
 {
-	std::unordered_set<const class CollisionComponent*> members;
-	
+	class Actor* member;
 	int row, col;
-	Vector2D cellPosition; // Top-left coordinate of the cell
+	AABB box;
 
 	Cell() 
-		: row(-1), col(-1), cellPosition(0.0f, 0.0f)
+		: row(-1), col(-1), box(Vector2D::Zero, Vector2D::Zero), member(nullptr)
 	{}
-	Cell(int inRow, int inCol, const Vector2D& inCellPosition) 
-		: row(inRow), col(inCol), cellPosition(inCellPosition)
-	{}
+
+	Cell(int inRow, int inCol, class Actor* inMember) 
+		: row(inRow), col(inCol), member(inMember)
+	{
+		Vector2D min{ inCol * CELL_W, inRow * CELL_H };
+		Vector2D max{ (inCol + 1) * CELL_W, (inRow + 1) * CELL_H };
+		box = AABB(min, max);
+	}
 
 	bool operator==(const Cell& other) const
 	{
@@ -43,18 +48,18 @@ class GridSpatialPartition
 public:
 	GridSpatialPartition();
 
-	void AddCellMember(const class CollisionComponent* inMember);
-	void RemoveCellMember(const class CollisionComponent* inMember);
+	void AssignCellMember(class Actor* inMember);
+	void RemoveCellMember(class Actor* inMember);
 	void ClearAllCells();
 	
-	bool IsInEmptyCell(const class CollisionComponent* inMember);
-	const std::unordered_set<const class CollisionComponent*>& GetCellMembers(const class CollisionComponent* inMember);
+	bool IsInEmptyCell(class Actor* inMember, std::vector<Cell>& outOccupiedCells);
 
 	void RenderGridDebug(struct SDL_Renderer* renderer);
 
 private:
+	std::vector<Cell> GetOverlappingCells(const Actor* inMember);
 	Cell& PositionToCell(const Vector2D& inPosition);
-	void AABBToCells(const struct AABB& inAABB, std::vector<Cell>& cells);
+	void AABBToCells(const AABB& inAABB, std::vector<Cell>& cells);
 
 	Cell mGrid[NUM_CELL_ROW][NUM_CELL_COL];
 	int mGridSize;

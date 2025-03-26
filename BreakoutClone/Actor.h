@@ -12,11 +12,9 @@ public:
 	Actor(class Game* game);
 	virtual ~Actor();
 
-	// Game loop for parent & child actors
+	// Game loop
 	void ProcessInput(const struct InputState& inputState);
-	virtual void ProcessActorInput(const struct InputState& inputState) {}
 	void Update(float deltaTime);
-	virtual void UpdateActor(float deltaTime) {}
 	virtual void RenderActorDebug(struct SDL_Renderer* renderer) {}
 
 	// Own/manage components
@@ -26,8 +24,6 @@ public:
 	class Game* GetGame() const { return mGame; }
 	State GetState() const { return mState; }
 	void SetState(State state) { mState = state; }
-
-	virtual void OnCollision(const Actor* other, const Vector2D& impactPoint, const Vector2D& impactNormal) {}
 
 	// Actor transform
 	const Vector2D& GetPosition() const { return mPosition; }
@@ -40,9 +36,21 @@ public:
 	// Negate sine to account for SDL Window's +y pointing downwards
 	Vector2D GetForward() const { return Vector2D(cosf(mRotation), -sinf(mRotation)); }
 
+	// Null by default. Will be assigned in CollisionComponent constructor
+	class CollisionComponent* GetCollisionComponent() const { return mCollisionComp; }
+	void SetCollisionComponent(class CollisionComponent* inCollisionComp) { mCollisionComp = inCollisionComp; }
+
+	virtual void OnCollision() {}
+
 protected:
+	virtual void ProcessActorInput(const struct InputState& inputState) {}
+	virtual void UpdateActor(float deltaTime) {}
+	virtual void ResolveActorCollision() {};
+	
+
 	class Game* mGame;
 	State mState;
+	class CollisionComponent* mCollisionComp;
 
 private:
 	void UpdateComponents(float deltaTime);

@@ -14,7 +14,7 @@ ActorPlayer::ActorPlayer(Game* game)
 	mSpriteComp->SetTexture(GetGame()->GetTexture("Assets/Paddle_Red.png"));
 
 	mMoveComp = new MoveComponent(this);
-	mMoveComp->SetMaxForwardSpeed(300.0f);
+	mMoveComp->SetMaxForwardSpeed(400.0f);
 
 	mCollisionComp = new CollisionComponent(this);
 	float halfTexWidth = mSpriteComp->GetTextureWidth() * 0.5f;
@@ -60,9 +60,8 @@ void ActorPlayer::ProcessActorInput(const InputState& inputState)
 	mMoveComp->SetForwardSpeed(forwardSpeed);
 }
 
-void ActorPlayer::UpdateActor(float deltaTime)
+void ActorPlayer::ResolveActorCollision()
 {
-	// Actor-Specific Collision
 	// Clamp Actor(paddle) position to mouse (if mouse enabled) and screen edges
 	if (!Math::IsNearZero(mMoveComp->GetForwardSpeed()))
 	{
@@ -84,14 +83,14 @@ float ActorPlayer::ResolveWallCollision(float inPosX)
 {
 	float posX = inPosX;
 
-	float halfSpriteWidth = (mSpriteComp->GetScaledWidth() * 0.5f);
-	if (posX - halfSpriteWidth < 0.0f)
+	const AABB& box = mCollisionComp->GetWorldAABB();
+	if (box.min.x < 0.0f)
 	{
-		posX = 0.0f + halfSpriteWidth;
+		posX = 0.0f + (box.GetWidth() * 0.5f);
 	}
-	else if (posX + halfSpriteWidth > WINDOW_WIDTH)
+	else if (box.max.x > WINDOW_WIDTH)
 	{
-		posX = WINDOW_WIDTH - halfSpriteWidth;
+		posX = WINDOW_WIDTH - (box.GetWidth() * 0.5f);
 	}
 
 	return posX;

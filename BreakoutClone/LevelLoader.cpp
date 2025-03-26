@@ -27,6 +27,7 @@ bool LevelLoader::LoadLevel(const std::string& fileName, Actor* actor)
 	return true;
 }
 
+// Load CSV file and store the values into a 2D array
 bool LevelLoader::LoadLevelFile(const std::string& fileName)
 {
 	std::ifstream inFile{ fileName };
@@ -92,6 +93,7 @@ bool LevelLoader::LoadActors(Actor* actor)
 				float posGridCol = CELL_W * 0.5f + (CELL_W * col);
 				float posGridRow = CELL_H * 0.5f + (CELL_H * row);
 				actor->SetPosition(Vector2D(posGridCol, posGridRow)); // Center of cell
+				mGame->GetGSP()->AssignCellMember(actor);
 			}
 		}
 	}

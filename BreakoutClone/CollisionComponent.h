@@ -10,9 +10,23 @@ struct AABB
 	Vector2D min; // Top left coordinate of box
 	Vector2D max; // Bottom right coordinate of box
 
+	AABB()
+		: min(Vector2D::Zero), max(Vector2D::Zero)
+	{}
+
 	AABB(const Vector2D& inMin, const Vector2D& inMax)
 		: min(inMin), max(inMax)
 	{}
+
+	float GetWidth() const
+	{
+		return max.x - min.x;
+	}
+
+	float GetHeight() const
+	{
+		return max.y - min.y;
+	}
 
 	Vector2D GetCenter() const
 	{
@@ -43,8 +57,6 @@ public:
 	void SetObjectAABB(const AABB& inAABB) { mObjectAABB = inAABB; }
 
 private:
-	class GridSpatialPartition* mGSP;
-
 	AABB mObjectAABB;
 	AABB mWorldAABB;
 };

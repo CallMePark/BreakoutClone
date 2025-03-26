@@ -7,19 +7,18 @@ CollisionComponent::CollisionComponent(Actor* owner, int updateOrder)
 	: Component(owner, updateOrder), mObjectAABB(Vector2D(0.0f, 0.0f), Vector2D(0.0f, 0.0f)),
 	mWorldAABB(Vector2D(0.0f, 0.0f), Vector2D(0.0f, 0.0f))
 {
-	// Add this as cell member to grid
-	mGSP = mOwner->GetGame()->GetGSP();
+	mOwner->SetCollisionComponent(this);
 }
 
 CollisionComponent::~CollisionComponent()
 {
 	// Remove owner from grid
-	mGSP->RemoveCellMember(this);
+	mOwner->GetGame()->GetGSP()->RemoveCellMember(mOwner);
 }
 
 void CollisionComponent::AddToGSP()
 {
-	mOwner->GetGame()->GetGSP()->AddCellMember(this);
+	mOwner->GetGame()->GetGSP()->AssignCellMember(mOwner);
 }
 
 void CollisionComponent::OnUpdateTransform()

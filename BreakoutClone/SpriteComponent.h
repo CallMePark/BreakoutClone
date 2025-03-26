@@ -15,9 +15,6 @@ public:
 	int GetTextureWidth() const { return mTextureWidth; }
 	int GetTextureHeight() const { return mTextureHeight; }
 
-	float GetScaledWidth() const;
-	float GetScaledHeight() const;
-
 private:
 	struct SDL_Texture* mTexture;
 	int mDrawOrder;

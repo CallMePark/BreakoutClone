@@ -8,8 +8,10 @@ public:
 	ActorPlayer(class Game* game);
 
 	void ProcessActorInput(const struct InputState& inputState) override;
-	void UpdateActor(float deltaTime) override;
 	void RenderActorDebug(struct SDL_Renderer* renderer) override;
+
+protected:
+	void ResolveActorCollision() override;
 
 private:
 	class SpriteComponent* mSpriteComp;

@@ -1,5 +1,5 @@
 #include "GridSpatialPartition.h"
-#include "CollisionComponent.h"
+#include "Actor.h"
 #include "SDL.h"
 
 #include <algorithm>
@@ -12,32 +12,26 @@ GridSpatialPartition::GridSpatialPartition()
 	{
 		for (int col = 0; col < NUM_CELL_COL; ++col)
 		{
-			mGrid[row][col] = Cell{ row, col, Vector2D(col * CELL_W, row * CELL_H)};
+			mGrid[row][col] = Cell{ row, col, nullptr };
 			++mGridSize;
 		}
 	}
 }
 
 // Add based on center since, Block Size = Cell Size
-void GridSpatialPartition::AddCellMember(const CollisionComponent* inMember)
+void GridSpatialPartition::AssignCellMember(Actor* inMember)
 {
-	const AABB& box = inMember->GetWorldAABB();
-	Cell& cell = PositionToCell(box.GetCenter());
+	Cell& cell = PositionToCell(inMember->GetPosition());
 
-	cell.members.insert(inMember);
+	cell.member = inMember;
 }
 
 // Remove based on center since, Block Size = Cell Size
-void GridSpatialPartition::RemoveCellMember(const CollisionComponent* inMember)
+void GridSpatialPartition::RemoveCellMember(Actor* inMember)
 {
-	const AABB& box = inMember->GetWorldAABB();
-	Cell& cell = PositionToCell(box.GetCenter());
+	Cell& cell = PositionToCell(inMember->GetPosition());
 
-	auto iter = cell.members.find(inMember);
-	if (iter != cell.members.end())
-	{
-		cell.members.erase(iter);
-	}
+	cell.member = nullptr;
 }
 
 void GridSpatialPartition::ClearAllCells()
@@ -46,37 +40,36 @@ void GridSpatialPartition::ClearAllCells()
 	{
 		for (int col = 0; col < NUM_CELL_COL; ++col)
 		{
-			mGrid[row][col].members.clear();
+			mGrid[row][col].member = nullptr;
 		}
 	}
 }
 
-const std::unordered_set<const CollisionComponent*>& GridSpatialPartition::GetCellMembers(const CollisionComponent* inMember)
-{
-	const AABB& box = inMember->GetWorldAABB();
-	Cell& cell = PositionToCell(box.GetCenter());
-
-	return cell.members;
-}
-
 // For dynamic objects to check against cell members
-bool GridSpatialPartition::IsInEmptyCell(const CollisionComponent* inMember)
+bool GridSpatialPartition::IsInEmptyCell(Actor* inMember, std::vector<Cell>& outOccupiedCells)
 {
 	bool isInEmptyCell = true;
 
-	const AABB& box = inMember->GetWorldAABB();
-	std::vector<Cell> cells;
-	AABBToCells(box, cells);
-
+	std::vector<Cell> cells = GetOverlappingCells(inMember);
 	for (const Cell& cell : cells)
 	{
-		if (!cell.members.empty())
+		if (cell.member)
 		{
+			outOccupiedCells.push_back(cell);
 			isInEmptyCell = false;
 		}
 	}
 
 	return isInEmptyCell;
+}
+
+std::vector<Cell> GridSpatialPartition::GetOverlappingCells(const Actor* inMember)
+{
+	const AABB& box = inMember->GetCollisionComponent()->GetWorldAABB();
+	std::vector<Cell> cells;
+	AABBToCells(box, cells);
+
+	return cells;
 }
 
 Cell& GridSpatialPartition::PositionToCell(const Vector2D& inPosition)
@@ -87,11 +80,12 @@ Cell& GridSpatialPartition::PositionToCell(const Vector2D& inPosition)
 	row = std::clamp(row, 0, NUM_CELL_ROW - 1);
 	col = std::clamp(col, 0, NUM_CELL_COL - 1);
 
-	return mGrid[row][col];
+	Cell& cell = mGrid[row][col];
+	return cell;
 }
 
 // Return all cells occupied within the AABB
-void GridSpatialPartition::AABBToCells(const AABB& inAABB, std::vector<Cell>& cells)
+void GridSpatialPartition::AABBToCells(const AABB& inAABB, std::vector<Cell>& outCells)
 {
 	int minRow = static_cast<int>(inAABB.min.y * INV_CELL_H);
 	int maxRow = static_cast<int>(inAABB.max.y * INV_CELL_H);
@@ -108,10 +102,10 @@ void GridSpatialPartition::AABBToCells(const AABB& inAABB, std::vector<Cell>& ce
 	{
 		for (int col = minCol; col <= maxCol; ++col)
 		{
-			auto iter = std::find(cells.begin(), cells.end(), mGrid[row][col]);
-			if (iter == cells.end())
+			auto iter = std::find(outCells.begin(), outCells.end(), mGrid[row][col]);
+			if (iter == outCells.end())
 			{
-				cells.push_back(mGrid[row][col]);
+				outCells.push_back(mGrid[row][col]);
 			}
 		}
 	}
@@ -128,15 +122,15 @@ void GridSpatialPartition::RenderGridDebug(SDL_Renderer* renderer)
 		{
 			Cell& cell = mGrid[row][col];
 
-			if (!cell.members.empty())
+			if (cell.member)
 			{
 				occupiedCells.push_back(cell);
 				continue;
 			}
 
 			SDL_Rect debugBox = {
-				static_cast<int>(cell.cellPosition.x),
-				static_cast<int>(cell.cellPosition.y),
+				static_cast<int>(cell.box.min.x),
+				static_cast<int>(cell.box.min.y),
 				static_cast<int>(CELL_W),
 				static_cast<int>(CELL_H)
 			};
@@ -152,8 +146,8 @@ void GridSpatialPartition::RenderGridDebug(SDL_Renderer* renderer)
 		for (int i = 0; i < thickness; ++i)
 		{
 			SDL_Rect thickDebugBox = {
-				static_cast<int>(cell.cellPosition.x) - i,
-				static_cast<int>(cell.cellPosition.y) - i,
+				static_cast<int>(cell.box.min.x) - i,
+				static_cast<int>(cell.box.min.y) - i,
 				static_cast<int>(CELL_W) + (2 * i),
 				static_cast<int>(CELL_H) + (2 * i)
 			};

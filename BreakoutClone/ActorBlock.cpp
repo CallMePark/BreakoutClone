@@ -32,3 +32,8 @@ void ActorBlock::RenderActorDebug(SDL_Renderer* renderer)
 	};
 	SDL_RenderDrawRect(renderer, &debugBox);
 }
+
+void ActorBlock::OnCollision()
+{
+	SetState(EDead);
+}

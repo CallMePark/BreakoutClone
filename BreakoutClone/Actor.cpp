@@ -6,7 +6,7 @@
 
 Actor::Actor(Game* game)
 	: mGame(game), mState(EActive), mPosition(Vector2D::Zero), mScale(1.0f), mRotation(0.0f),
-	mIsUpdateTransform(false)
+	mIsUpdateTransform(false), mCollisionComp(nullptr)
 {
 	mGame->AddActor(this);
 }
@@ -43,6 +43,8 @@ void Actor::Update(float deltaTime)
 		UpdateActor(deltaTime);
 
 		OnUpdateTransform(); // Preps transform for any post-update transform update
+
+		ResolveActorCollision(); // Actor-Specific Collision once all updates are complete
 	}
 }
 
