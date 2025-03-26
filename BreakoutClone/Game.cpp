@@ -67,7 +67,18 @@ void Game::LoadData()
 {
 	Actor* a = new ActorBackground(this);
 	a = new ActorPlayer(this);
+
 	a = new ActorBall(this);
+	float startDirDegree = 135.0f;
+	float startDirRadian = Math::ToRadian(startDirDegree);
+	a->SetRotation(startDirRadian);
+	a->SetPosition(Vector2D(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT - 100.0f));
+
+	a = new ActorBall(this);
+	startDirDegree = 30.0f;
+	startDirRadian = Math::ToRadian(startDirDegree);
+	a->SetRotation(startDirRadian);
+	a->SetPosition(Vector2D(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT - 100.0f));
 
 	std::string levelFileName = "Assets/BlockGrid_Level1.csv";
 	if (!mLevelLoader->LoadLevel(levelFileName, a))

@@ -40,14 +40,54 @@ public:
 		return (other.x - x) * (other.x - x) + (other.y - y) * (other.y - y);
 	}
 
-	Vector2D operator+(const Vector2D& other)
+	float Length()
 	{
-		return Vector2D(x + other.x, y + other.y);
+		return std::sqrt((x * x) + (y * y));
 	}
 
-	Vector2D operator*(float scalar)
+	void Normalize()
 	{
-		return Vector2D(x * scalar, y * scalar);
+		float length = this->Length();
+		if (!Math::IsNearZero(length))
+		{
+			x /= length;
+			y /= length;
+		}
+		else
+		{
+			x = 0.0f;
+			y = 0.0f;
+		}
+	}
+
+	static float DotProduct(const Vector2D& left, const Vector2D& right)
+	{
+		return (left.x * right.x) + (left.y * right.y);
+	}
+
+	friend Vector2D operator+(const Vector2D& left, const Vector2D& right)
+	{
+		return Vector2D(left.x + right.x, left.y + right.y);
+	}
+
+	friend Vector2D operator-(const Vector2D& left, const Vector2D& right)
+	{
+		return Vector2D(left.x - right.x, left.y - right.y);
+	}
+
+	friend Vector2D operator*(const Vector2D& left, float scalar)
+	{
+		return Vector2D(left.x * scalar, left.y * scalar);
+	}
+
+	friend Vector2D operator*(float scalar, const Vector2D& right)
+	{
+		return Vector2D(right.x * scalar, right.y * scalar);
+	}
+
+	friend bool operator==(const Vector2D& left, const Vector2D& right)
+	{
+		return (left.x == right.x) && (left.y == right.y);
 	}
 
 	Vector2D& operator+=(const Vector2D& other)
@@ -64,12 +104,10 @@ public:
 		return *this;
 	}
 
-	bool operator==(const Vector2D& other) const
-	{
-		return (x == other.x) && (y == other.y);
-	}
 
 	static const Vector2D Zero;
 	static const Vector2D Right;
 	static const Vector2D Left;
+	static const Vector2D Up;
+	static const Vector2D Down;
 };

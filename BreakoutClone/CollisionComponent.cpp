@@ -16,11 +16,6 @@ CollisionComponent::~CollisionComponent()
 	mOwner->GetGame()->GetGSP()->RemoveCellMember(mOwner);
 }
 
-void CollisionComponent::AddToGSP()
-{
-	mOwner->GetGame()->GetGSP()->AssignCellMember(mOwner);
-}
-
 void CollisionComponent::OnUpdateTransform()
 {
 	mWorldAABB = mObjectAABB;

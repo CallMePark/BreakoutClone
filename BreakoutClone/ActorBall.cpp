@@ -24,12 +24,6 @@ ActorBall::ActorBall(Game* game)
 	Vector2D max{ halfTexWidth, halfTexHeight };
 	AABB box{ min, max };
 	mCollisionComp->SetObjectAABB(box);
-
-	SetPosition(Vector2D(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT - 100.0f));
-	
-	float startDirDegree = 135.0f;
-	float startDirRadian = Math::ToRadian(startDirDegree);
-	SetRotation(startDirRadian);
 }
 
 void ActorBall::ResolveActorCollision()
@@ -53,66 +47,22 @@ void ActorBall::ResolveWallCollision(const AABB& box, Vector2D& vel, Vector2D& p
 {
 	if (box.min.x < 0.0f) // Left Wall (Collide from right)
 	{
-		if (vel.x < 0.0f && vel.y < 0.0f) // Quadrant II direction (Clockwise)
-		{
-			rot -= (Math::PI * 0.5f);
-		}
-		else if (vel.x < 0.0f && vel.y > 0.0f) // Quadrant III direction (Counter-Clockwise)
-		{
-			rot += (Math::PI * 0.5f);
-		}
-		else // Straight left direction
-		{
-			rot += Math::PI;
-		}
+		rot = CalculateReflectionAngle(vel, Vector2D::Right);
 		pos = Vector2D(0.0f + (box.GetWidth() * 0.5f), GetPosition().y);
 	}
 	else if (box.max.x > WINDOW_WIDTH) // Right Wall (Collide from left)
 	{
-		if (vel.x > 0.0f && vel.y > 0.0f) // Quadrant IV direction (Clockwise)
-		{
-			rot -= (Math::PI * 0.5f);
-		}
-		else if (vel.x > 0.0f && vel.y < 0.0f) // Quadrant I direction (Counter-Clockwise)
-		{
-			rot += (Math::PI * 0.5f);
-		}
-		else // Straight right direction
-		{
-			rot += Math::PI;
-		}
+		rot = CalculateReflectionAngle(vel, Vector2D::Left);
 		pos = Vector2D(WINDOW_WIDTH - (box.GetWidth() * 0.5f), GetPosition().y);
 	}
 	else if (box.min.y < 0.0f) // Top Wall (Collide from down)
 	{
-		if (vel.x > 0.0f && vel.y < 0.0f) // Quadrant I direction (Clockwise)
-		{
-			rot -= (Math::PI * 0.5f);
-		}
-		else if (vel.x < 0.0f && vel.y < 0.0f) // Quadrant II direction (Counter-Clockwise)
-		{
-			rot += (Math::PI * 0.5f);
-		}
-		else // Straight up direction
-		{
-			rot += Math::PI;
-		}
+		rot = CalculateReflectionAngle(vel, Vector2D::Down);
 		pos = Vector2D(GetPosition().x, 0.0f + (box.GetHeight() * 0.5f));
 	}
 	else if (box.max.y > WINDOW_HEIGHT) // Bottom Wall (Collide from up)
 	{
-		if (vel.x < 0.0f && vel.y > 0.0f) // Quadrant III direction (Clockwise)
-		{
-			rot -= (Math::PI * 0.5f);
-		}
-		else if (vel.x > 0.0f && vel.y > 0.0f) // Quadrant IV direction (Counter-Clockwise)
-		{
-			rot += (Math::PI * 0.5f);
-		}
-		else // Straight bottom direction
-		{
-			rot += Math::PI;
-		}
+		rot = CalculateReflectionAngle(vel, Vector2D::Up);
 		pos = Vector2D(GetPosition().x, WINDOW_HEIGHT - (box.GetHeight() * 0.5f));
 	}
 }
@@ -148,78 +98,49 @@ void ActorBall::ResolveBlockCollision(const AABB& box, Vector2D& vel, Vector2D& 
 
 		if (overlapDepthX < overlapDepthY) // Collision from left or right
 		{
-			if (box.min.x < cellBox.min.x) // Left
+			if (box.min.x < cellBox.min.x) // Collision from Left
 			{
-				if (vel.x > 0.0f && vel.y > 0.0f) // Quadrant IV direction (Clockwise)
-				{
-					rot -= (Math::PI * 0.5f);
-				}
-				else if (vel.x > 0.0f && vel.y < 0.0f) // Quadrant I direction (Counter-Clockwise)
-				{
-					rot += (Math::PI * 0.5f);
-				}
-				else // Straight right direction
-				{
-					rot += Math::PI;
-				}
+				rot = CalculateReflectionAngle(vel, Vector2D::Left);
 				pos = Vector2D(cellBox.min.x - (box.GetWidth() * 0.5f), GetPosition().y);;
 			}
-			else if (box.max.x > cellBox.max.x) // Right
+			else if (box.max.x > cellBox.max.x) // Collision from Right
 			{
-				if (vel.x < 0.0f && vel.y < 0.0f) // Quadrant II direction (Clockwise)
-				{
-					rot -= (Math::PI * 0.5f);
-				}
-				else if (vel.x < 0.0f && vel.y > 0.0f) // Quadrant III direction (Counter-Clockwise)
-				{
-					rot += (Math::PI * 0.5f);
-				}
-				else // Straight left direction
-				{
-					rot += Math::PI;
-				}
+				rot = CalculateReflectionAngle(vel, Vector2D::Right);
 				pos = Vector2D(cellBox.max.x + (box.GetWidth() * 0.5f), GetPosition().y);
 			}
 		}
 		else if (overlapDepthX > overlapDepthY) // Top or Bottom of cell
 		{
-			if (box.min.y < cellBox.min.y) // Top
+			if (box.min.y < cellBox.min.y) // Collision from Up
 			{
-				if (vel.x < 0.0f && vel.y > 0.0f) // Quadrant III direction (Clockwise)
-				{
-					rot -= (Math::PI * 0.5f);
-				}
-				else if (vel.x > 0.0f && vel.y > 0.0f) // Quadrant IV direction (Counter-Clockwise)
-				{
-					rot += (Math::PI * 0.5f);
-				}
-				else // Straight bottom direction
-				{
-					rot += Math::PI;
-				}
+				rot = CalculateReflectionAngle(vel, Vector2D::Up);
 				pos = Vector2D(GetPosition().x, cellBox.min.y - (box.GetHeight() * 0.5f));
 			}
-			else if (box.max.y > cellBox.max.y) // Bottom
+			else if (box.max.y > cellBox.max.y) // Collision from Down
 			{
-				if (vel.x > 0.0f && vel.y < 0.0f) // Quadrant I direction (Clockwise)
-				{
-					rot -= (Math::PI * 0.5f);
-
-				}
-				else if (vel.x < 0.0f && vel.y < 0.0f) // Quadrant II direction (Counter-Clockwise)
-				{
-					rot += (Math::PI * 0.5f);
-				}
-				else // Straight up direction
-				{
-					rot += Math::PI;
-				}
+				rot = CalculateReflectionAngle(vel, Vector2D::Down);
 				pos = Vector2D(GetPosition().x, cellBox.max.y + (box.GetHeight() * 0.5f));
 			}
 		}
 
 		closestCell.member->OnCollision();
 	}
+}
+
+float ActorBall::CalculateReflectionAngle(const Vector2D& vel, const Vector2D& norm)
+{
+	/*
+	* 1. Negate vel for vector projection
+	* 2. Project vel onto norm using dot product
+	* 3. Scale the projection by 2
+	* 4. Add initial vel to the scaled projection for the reflected vector
+	*	(Distributive property to simplify from V + 2(-V * N)N to V - 2(V * N)N 
+	*/
+	Vector2D reflectedVector = vel - (2.0f * (Vector2D::DotProduct(vel, norm)) * norm);
+	reflectedVector.Normalize();
+
+	// Convert unit vector to angle (radian)
+	return std::atan2f(-reflectedVector.y, reflectedVector.x);
 }
 
 void ActorBall::RenderActorDebug(SDL_Renderer* renderer)

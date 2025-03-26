@@ -32,16 +32,6 @@ struct AABB
 	{
 		return Vector2D{ (min.x + max.x) * 0.5f, (min.y + max.y) * 0.5f };
 	}
-
-	std::vector<Vector2D> GetCorners() const
-	{
-		return {
-			Vector2D{min.x, min.y},
-			Vector2D{max.x, min.y},
-			Vector2D{min.x, max.y},
-			Vector2D{max.x, max.y}
-		};
-	}
 };
 
 class CollisionComponent : public Component
@@ -50,7 +40,6 @@ public:
 	CollisionComponent(class Actor* owner, int updateOrder = 50);
 	~CollisionComponent();
 
-	void AddToGSP();
 	void OnUpdateTransform() override;
 
 	const AABB& GetWorldAABB() const { return mWorldAABB; }

@@ -16,6 +16,8 @@ private:
 	void ResolveWallCollision(const struct AABB& box, Vector2D& vel, Vector2D& pos, float& rot);
 	void ResolveBlockCollision(const struct AABB& box, Vector2D& vel, Vector2D& pos, float& rot);
 
+	float CalculateReflectionAngle(const Vector2D& vel, const Vector2D& norm);
+
 	class SpriteComponent* mSpriteComp;
 	class MoveComponent* mMoveComp;
 	class CollisionComponent* mCollisionComp;
